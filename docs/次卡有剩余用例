@@ -1,0 +1,117 @@
+
+-- 1. 先记录测试开始的日志
+INSERT INTO debug_logs (function_name, member_id, message, details)
+VALUES (
+    'test_remaining_classes',
+    'ba5a03f5-2e36-4fde-8b3a-f4c3b0bbf765',
+    '开始测试',
+    jsonb_build_object(
+        'test_type', '十次卡中间状态测试',
+        'test_scenario', '剩余7次课时签到'
+    )
+);
+
+-- 2. 记录当前状态
+INSERT INTO debug_logs (function_name, member_id, message, details)
+SELECT 
+    'test_remaining_classes',
+    id,
+    '测试前状态',
+    jsonb_build_object(
+        'membership', membership,
+        'remaining_classes', remaining_classes,
+        'last_check_in_date', last_check_in_date,
+        'daily_check_ins', daily_check_ins
+    )
+FROM members 
+WHERE id = 'ba5a03f5-2e36-4fde-8b3a-f4c3b0bbf765';
+
+-- 3. 修改剩余课时为7次并记录
+UPDATE members 
+SET remaining_classes = 7
+WHERE id = 'ba5a03f5-2e36-4fde-8b3a-f4c3b0bbf765';
+
+INSERT INTO debug_logs (function_name, member_id, message, details)
+SELECT 
+    'test_remaining_classes',
+    id,
+    '设置课时状态',
+    jsonb_build_object(
+        'membership', membership,
+        'remaining_classes', remaining_classes,
+        'operation', '设置为7次课时'
+    )
+FROM members 
+WHERE id = 'ba5a03f5-2e36-4fde-8b3a-f4c3b0bbf765';
+
+-- 4. 插入签到记录
+INSERT INTO check_ins (member_id, check_in_date, class_type)
+VALUES ('ba5a03f5-2e36-4fde-8b3a-f4c3b0bbf765', CURRENT_DATE, 'morning')
+RETURNING id, member_id, check_in_date, is_extra;
+
+-- 5. 查看完整操作日志
+WITH formatted_logs AS (
+    SELECT 
+        to_char(created_at, 'HH24:MI:SS') as time,
+        function_name,
+        CASE 
+            WHEN message = '会员信息' THEN 
+                format('会员(%s): %s, 剩余次数:%s', 
+                    details->>'is_new_member', 
+                    details->>'membership', 
+                    details->>'remaining_classes'
+                )
+            WHEN message = '开始处理' THEN 
+                format('开始处理签到: %s', 
+                    CASE WHEN (details->>'is_extra')::boolean 
+                    THEN '额外签到' 
+                    ELSE '正常签到' 
+                    END
+                )
+            WHEN message = '更新完成' THEN 
+                format('完成签到: 课时%s -> %s', 
+                    details->>'old_remaining_classes', 
+                    details->>'new_remaining_classes'
+                )
+            WHEN message = '测试前状态' THEN
+                format('测试前状态: %s卡, 剩余%s次, 上次签到:%s, 今日签到:%s次',
+                    details->>'membership',
+                    details->>'remaining_classes',
+                    details->>'last_check_in_date',
+                    details->>'daily_check_ins'
+                )
+            WHEN message = '设置课时状态' THEN
+                format('设置课时: %s卡, 当前剩余%s次',
+                    details->>'membership',
+                    details->>'remaining_classes'
+                )
+            ELSE message || CASE 
+                WHEN details IS NOT NULL 
+                THEN ': ' || details::text 
+                ELSE '' 
+                END
+        END as info
+    FROM debug_logs
+    WHERE created_at >= NOW() - INTERVAL '2 minute'
+)
+SELECT 
+    time,
+    function_name as "函数",
+    info as "详细信息"
+FROM formatted_logs
+ORDER BY time DESC;
+
+-- 6. 记录测试结束状态
+INSERT INTO debug_logs (function_name, member_id, message, details)
+SELECT 
+    'test_remaining_classes',
+    id,
+    '测试结束状态',
+    jsonb_build_object(
+        'membership', membership,
+        'remaining_classes', remaining_classes,
+        'last_check_in_date', last_check_in_date,
+        'daily_check_ins', daily_check_ins
+    )
+FROM members 
+WHERE id = 'ba5a03f5-2e36-4fde-8b3a-f4c3b0bbf765';

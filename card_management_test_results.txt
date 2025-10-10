@@ -1,0 +1,78 @@
+BEGIN
+DELETE 0
+INSERT 0 1
+       test_case        
+------------------------
+ 测试用例35：会员卡创建
+(1 row)
+
+INSERT 0 1
+INSERT 0 1
+                  id                  | card_type | card_category | card_subtype | remaining_group_sessions | remaining_private_sessions | trainer_type | valid_until 
+--------------------------------------+-----------+---------------+--------------+--------------------------+----------------------------+--------------+-------------
+ eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee | group     | session       | 10_sessions  |                       10 |                            |              | 2025-06-02
+ ffffffff-ffff-ffff-ffff-ffffffffffff | private   | session       | 10_sessions  |                          |                         10 | senior       | 2025-04-02
+(2 rows)
+
+       test_case        
+------------------------
+ 测试用例36：会员卡更新
+(1 row)
+
+UPDATE 1
+                  id                  | card_type | card_subtype | remaining_group_sessions 
+--------------------------------------+-----------+--------------+--------------------------
+ eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee | group     | 10_sessions  |                        8
+(1 row)
+
+              test_case               
+--------------------------------------
+ 测试用例37：会员卡续费（延长有效期）
+(1 row)
+
+UPDATE 1
+                  id                  | card_type | card_subtype | valid_until 
+--------------------------------------+-----------+--------------+-------------
+ eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee | group     | 10_sessions  | 2025-09-02
+(1 row)
+
+             test_case              
+------------------------------------
+ 测试用例38：会员卡升级（增加课时）
+(1 row)
+
+UPDATE 1
+                  id                  | card_type | card_subtype | remaining_private_sessions 
+--------------------------------------+-----------+--------------+----------------------------
+ ffffffff-ffff-ffff-ffff-ffffffffffff | private   | 10_sessions  |                         15
+(1 row)
+
+         test_case          
+----------------------------
+ 测试用例39：会员卡类型升级
+(1 row)
+
+INSERT 0 1
+UPDATE 1
+                  id                  | card_type | card_category |  card_subtype  | valid_until 
+--------------------------------------+-----------+---------------+----------------+-------------
+ 12345678-1234-1234-1234-123456789abc | group     | monthly       | double_monthly | 2025-04-01
+(1 row)
+
+       test_case        
+------------------------
+ 测试用例40：会员卡删除
+(1 row)
+
+DELETE 1
+ remaining_cards 
+-----------------
+               0
+(1 row)
+
+ remaining_cards 
+-----------------
+               2
+(1 row)
+
+COMMIT

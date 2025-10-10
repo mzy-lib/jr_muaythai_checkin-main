@@ -1,0 +1,6 @@
+name,email,membership,remaining_classes,membership_expiry,check_in_date,class_type,is_extra
+John Wang,john@example.com,ten_classes,8,2024-04-01,2024-03-15,morning,false
+李明,li@example.com,single_daily_monthly,,2024-04-15,2024-03-15,evening,false
+Sarah Chen,sarah@example.com,double_daily_monthly,,2024-04-30,2024-03-15,morning,false
+Mike Liu,mike@example.com,single_class,0,,2024-03-15,morning,true
+张伟,zhang@example.com,two_classes,1,,2024-03-14,evening,false

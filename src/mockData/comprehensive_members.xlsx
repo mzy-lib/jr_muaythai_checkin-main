@@ -1,0 +1,16 @@
+name,email,membership,remaining_classes,membership_expiry,check_in_date,class_type,is_extra,registration_date,status,notes
+王小明,wang.xm@example.com,ten_classes,7,2024-04-30,2024-03-18,morning,false,2024-01-01,active,Regular member
+John Smith,john.smith@example.com,single_daily_monthly,,2024-04-15,2024-03-18,morning,false,2024-02-15,active,English name
+陈Wei Chen,chen.wei@example.com,double_daily_monthly,,2024-04-30,2024-03-18,morning,false,2024-01-20,active,Mixed language name
+Boxing_King88,boxing.king@example.com,ten_classes,0,2024-03-15,,,,2024-01-05,expired,Numbers in name
+xXx_Fighter_xXx,fighter@example.com,single_class,1,,,,,,2024-03-19,new,Special characters
+MT-Master2024,mt.master@example.com,two_classes,2,,2024-03-18,evening,false,2024-03-01,active,Alphanumeric
+吴Anna婷,wu.anna@example.com,ten_classes,10,2024-05-01,,,,2024-03-15,active,Chinese-English mix
+Lin_小华123,lin.xh@example.com,single_daily_monthly,,2024-03-15,2024-03-18,morning,true,2024-01-10,expired,Chinese with numbers
+MuayThai_周杰,zhou.jie@example.com,double_daily_monthly,,2024-04-30,2024-03-18,evening,false,2024-02-01,active,Mixed with underscore
+Sarah张,sarah.zhang@example.com,,,,,,,2024-03-19,pending,English-Chinese
+黄威2024,huang.wei@example.com,ten_classes,3,2024-04-15,2024-03-18,morning,false,2024-01-15,active,Chinese with year
+_Sun_李李_,sun.li@example.com,single_daily_monthly,,2024-04-30,2024-03-18,morning,false,2024-02-20,active,Special format
+Tiger.Wong,tiger.wong@example.com,ten_classes,5,2024-04-30,2024-03-18,morning,false,2024-02-25,active,With period
+张三@MT,zhang.san.mt@example.com,two_classes,1,,2024-03-18,evening,false,2024-03-05,active,With @ symbol
+K.O.李强,li.qiang@example.com,double_daily_monthly,,2024-04-30,2024-03-18,morning,false,2024-02-10,active,With periods

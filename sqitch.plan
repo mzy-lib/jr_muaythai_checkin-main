@@ -1,0 +1,9 @@
+%syntax-version=1.0.0
+%project=jr_checkin
+
+appschema 2023-12-26T00:00:00Z developer <dev@example.com> # 添加应用架构
+init_schema 2023-12-26T01:00:00Z developer <dev@example.com> # 初始化数据库架构
+add_private_class 2024-01-15T00:00:00Z developer <dev@example.com> # 添加私教课功能
+add_time_slots 2024-02-01T00:00:00Z developer <dev@example.com> # 添加时间段支持
+fix_check_duplicate_check_in 2024-03-10T00:00:00Z developer <dev@example.com> # 修复重复签到检查
+fix_kids_group_class 2024-12-26T08:50:00Z developer <dev@example.com> # 添加对儿童团课的支持 

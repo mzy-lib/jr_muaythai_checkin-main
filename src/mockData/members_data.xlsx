@@ -1,0 +1,17 @@
+name,email,membership,remaining_classes,membership_expiry,check_in_date,class_type,is_extra
+王小明,wang.xm@example.com,ten_classes,7,2024-04-30,2024-03-18,morning,false
+王小明,wang.xm@example.com,ten_classes,6,2024-04-30,2024-03-19,evening,false
+王小明,wang.xm@example.com,ten_classes,5,2024-04-30,2024-03-20,morning,false
+李娜,li.na@example.com,single_daily_monthly,,2024-04-15,2024-03-18,morning,false
+李娜,li.na@example.com,single_daily_monthly,,2024-04-15,2024-03-18,evening,true
+陈伟,chen.wei@example.com,double_daily_monthly,,2024-04-30,2024-03-18,morning,false
+陈伟,chen.wei@example.com,double_daily_monthly,,2024-04-30,2024-03-18,evening,false
+陈伟,chen.wei@example.com,double_daily_monthly,,2024-04-30,2024-03-19,morning,true
+Sarah Wong,sarah.w@example.com,single_class,0,,2024-03-18,morning,true
+Mike Chen,mike.c@example.com,two_classes,1,,2024-03-18,evening,false
+张三,zhang.san@example.com,ten_classes,3,2024-05-15,2024-03-18,morning,false
+张三,zhang.san@example.com,ten_classes,2,2024-05-15,2024-03-19,evening,false
+Lucy Liu,lucy.l@example.com,single_daily_monthly,,2024-03-15,2024-03-18,morning,true
+Tom Wu,tom.w@example.com,double_daily_monthly,,2024-04-30,2024-03-18,morning,false
+Tom Wu,tom.w@example.com,double_daily_monthly,,2024-04-30,2024-03-18,evening,false
+John Zhang,john.z@example.com,ten_classes,9,2024-05-30,2024-03-18,morning,false

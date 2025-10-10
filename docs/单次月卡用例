@@ -1,0 +1,128 @@
+-- 清理测试数据
+DELETE FROM debug_logs WHERE member_id IN (
+  SELECT id FROM members WHERE name LIKE 'test_monthly%'
+);
+DELETE FROM check_ins WHERE member_id IN (
+  SELECT id FROM members WHERE name LIKE 'test_monthly%'
+);
+DELETE FROM members WHERE name LIKE 'test_monthly%';
+
+-- 创建测试会员
+INSERT INTO members (name, membership, membership_expiry, is_new_member)
+VALUES ('test_monthly_single', 'single_monthly', '2025-01-31', false);
+
+-- 输出：步骤1 - 创建会员后的状态
+SELECT '步骤1 - 创建会员状态' as step,
+       name, membership, membership_expiry, is_new_member
+FROM members
+WHERE name = 'test_monthly_single';
+
+-- 测试场景1：第一天第一次签到
+INSERT INTO check_ins (member_id, check_in_date, class_type)
+SELECT 
+  id,
+  '2025-01-15'::date,
+  'morning'::class_type
+FROM members 
+WHERE name = 'test_monthly_single';
+
+-- 输出：步骤2 - 第一次签到的验证日志
+SELECT '步骤2 - 第一次签到(1月15日上午)验证日志' as step,
+       to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as log_time,
+       message,
+       details->>'check_in_date' as check_date,
+       details->>'class_type' as class_type,
+       details->>'daily_check_ins' as daily_checkins,
+       details->>'is_extra' as is_extra,
+       details->>'reason' as reason
+FROM debug_logs
+WHERE member_id = (SELECT id FROM members WHERE name = 'test_monthly_single')
+AND created_at >= (SELECT created_at FROM debug_logs ORDER BY created_at DESC LIMIT 1) - interval '10 seconds'
+ORDER BY created_at;
+
+-- 测试场景2：第一天第二次签到
+INSERT INTO check_ins (member_id, check_in_date, class_type)
+SELECT 
+  id,
+  '2025-01-15'::date,
+  'evening'::class_type
+FROM members 
+WHERE name = 'test_monthly_single';
+
+-- 输出：步骤3 - 第二次签到的验证日志
+SELECT '步骤3 - 第二次签到(1月15日晚上)验证日志' as step,
+       to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as log_time,
+       message,
+       details->>'check_in_date' as check_date,
+       details->>'class_type' as class_type,
+       details->>'daily_check_ins' as daily_checkins,
+       details->>'is_extra' as is_extra,
+       details->>'reason' as reason
+FROM debug_logs
+WHERE member_id = (SELECT id FROM members WHERE name = 'test_monthly_single')
+AND created_at >= (SELECT created_at FROM debug_logs ORDER BY created_at DESC LIMIT 1) - interval '10 seconds'
+ORDER BY created_at;
+
+-- 测试场景3：第二天签到
+INSERT INTO check_ins (member_id, check_in_date, class_type)
+SELECT 
+  id,
+  '2025-01-16'::date,
+  'morning'::class_type
+FROM members 
+WHERE name = 'test_monthly_single';
+
+-- 输出：步骤4 - 第二天签到的验证日志
+SELECT '步骤4 - 第二天签到(1月16日)验证日志' as step,
+       to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as log_time,
+       message,
+       details->>'check_in_date' as check_date,
+       details->>'class_type' as class_type,
+       details->>'daily_check_ins' as daily_checkins,
+       details->>'is_extra' as is_extra,
+       details->>'reason' as reason
+FROM debug_logs
+WHERE member_id = (SELECT id FROM members WHERE name = 'test_monthly_single')
+AND created_at >= (SELECT created_at FROM debug_logs ORDER BY created_at DESC LIMIT 1) - interval '10 seconds'
+ORDER BY created_at;
+
+-- 测试场景4：过期后签到
+INSERT INTO check_ins (member_id, check_in_date, class_type)
+SELECT 
+  id,
+  '2025-02-01'::date,
+  'morning'::class_type
+FROM members 
+WHERE name = 'test_monthly_single';
+
+-- 输出：步骤5 - 过期后签到的验证日志
+SELECT '步骤5 - 过期后签到(2月1日)验证日志' as step,
+       to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') as log_time,
+       message,
+       details->>'check_in_date' as check_date,
+       details->>'class_type' as class_type,
+       details->>'daily_check_ins' as daily_checkins,
+       details->>'is_extra' as is_extra,
+       details->>'reason' as reason
+FROM debug_logs
+WHERE member_id = (SELECT id FROM members WHERE name = 'test_monthly_single')
+AND created_at >= (SELECT created_at FROM debug_logs ORDER BY created_at DESC LIMIT 1) - interval '10 seconds'
+ORDER BY created_at;
+
+-- 最终测试结果汇总
+SELECT '最终测试结果汇总' as step,
+       m.name,
+       m.membership,
+       m.membership_expiry,
+       COUNT(*) FILTER (WHERE NOT c.is_extra) as normal_checkins,
+       COUNT(*) FILTER (WHERE c.is_extra) as extra_checkins,
+       string_agg(
+         c.check_in_date::text || ' ' || c.class_type::text || 
+         CASE WHEN c.is_extra THEN ' 额外' ELSE ' 正常' END,
+         E'\n' ORDER BY c.check_in_date, c.class_type
+       ) as check_in_details
+FROM members m
+JOIN check_ins c ON c.member_id = m.id
+WHERE m.name LIKE 'test_monthly%'
+GROUP BY m.id, m.name, m.membership, m.membership_expiry
+ORDER BY m.name; 
