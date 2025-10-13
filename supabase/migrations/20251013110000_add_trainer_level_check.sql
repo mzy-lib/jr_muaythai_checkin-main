@@ -66,12 +66,12 @@ BEGIN
   -- 如果是私教课，检查教练等级
   IF v_is_private AND p_trainer_id IS NOT NULL THEN
     -- 获取教练等级
-    SELECT level INTO v_trainer_level FROM trainers WHERE id = p_trainer_id;
+    SELECT notes INTO v_trainer_level FROM trainers WHERE id = p_trainer_id;
     -- 获取卡要求的教练等级
     v_card_trainer_level := v_card.card_subtype;
 
     -- 如果卡等级是高级，但教练是JR，则视为额外签到
-    IF v_card_trainer_level = '高级教练' AND v_trainer_level = 'JR' THEN
+    IF v_card_trainer_level = '高级教练' AND v_trainer_level LIKE 'JR%' THEN
         PERFORM log_debug('check_card_validity', '高阶卡用于低阶教练', jsonb_build_object('card_level', v_card_trainer_level, 'trainer_level', v_trainer_level));
         RETURN jsonb_build_object('is_valid', false, 'reason', '高阶卡用于低阶教练');
     END IF;
