@@ -24,6 +24,7 @@ export default function CheckInFormFields({
   // 团课固定时间段
   const groupTimeSlots = [
     { id: '09:00-10:30', label: '早课 Morning (09:00-10:30)' },
+    { id: '15:00-17:00', label: '午课 Afternoon (15:00-17:00)' },
     { id: '17:00-18:30', label: '晚课 Evening (17:00-18:30)' }
   ];
 
@@ -85,8 +86,9 @@ export default function CheckInFormFields({
               disabled={loading}
             >
               <option value="">请选择时间段...</option>
-              <option value="9:00-10:30">早课 9:00-10:30</option>
-              <option value="17:00-18:30">晚课 17:00-18:30</option>
+              {groupTimeSlots.map(slot => (
+                <option key={slot.id} value={slot.id}>{slot.label}</option>
+              ))}
             </select>
           )}
         </div>
