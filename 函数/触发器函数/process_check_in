@@ -1,0 +1,70 @@
+
+DECLARE
+    v_member_id uuid;
+    v_card_id uuid;
+    v_debug_details jsonb;
+BEGIN
+    -- 设置时区
+    SET TIME ZONE 'Asia/Bangkok';
+    
+    -- 获取会员ID和卡ID
+    v_member_id := NEW.member_id;
+    v_card_id := NEW.card_id;
+    
+    -- 初始化调试信息
+    v_debug_details := jsonb_build_object(
+        'member_id', v_member_id,
+        'check_in_date', NEW.check_in_date,
+        'class_type', NEW.class_type,
+        'is_extra', NEW.is_extra,
+        'card_id', v_card_id,
+        'time_slot', NEW.time_slot
+    );
+
+    -- 记录开始处理签到（调试用）
+    PERFORM log_debug('process_check_in', '开始处理签到', v_debug_details);
+
+    -- 处理正常签到（有效会员卡）
+    IF NOT NEW.is_extra THEN
+        -- 更新会员卡剩余次数（兼容中英文类型/类别，增加儿童团课支持）
+        UPDATE membership_cards
+        SET 
+            remaining_group_sessions = CASE 
+                WHEN card_type IN ('group', 'class', '团课')
+                  AND card_category IN ('sessions', 'group', '课时卡')
+                  AND NEW.class_type::TEXT IN ('morning', 'evening')
+                THEN remaining_group_sessions - 1
+                ELSE remaining_group_sessions
+            END,
+            remaining_private_sessions = CASE 
+                WHEN card_type IN ('private', '私教课', '私教')
+                  AND NEW.class_type::TEXT = 'private'
+                THEN remaining_private_sessions - 1
+                ELSE remaining_private_sessions
+            END,
+            -- 修改儿童团课判断条件，去除时间段限制，增加灵活匹配
+            remaining_kids_sessions = CASE 
+                WHEN (card_type = '儿童团课' OR card_type LIKE '%kids%')
+                  AND (NEW.class_type::TEXT = 'kids group' OR NEW.class_type::TEXT LIKE '%kids%')
+                THEN remaining_kids_sessions - 1
+                ELSE remaining_kids_sessions
+            END
+        WHERE id = v_card_id;
+
+        -- 记录扣课结果
+        PERFORM log_debug(
+            'process_check_in',
+            '扣除课时完成',
+            jsonb_build_object(
+                'card_id', v_card_id,
+                'class_type', NEW.class_type::TEXT,
+                'card_type', (SELECT card_type FROM membership_cards WHERE id = v_card_id),
+                'remaining_kids_sessions', (SELECT remaining_kids_sessions FROM membership_cards WHERE id = v_card_id)
+            )
+        );
+
+        -- 其余函数保持不变...
+    END IF;
+    
+    RETURN NEW;
+END;

@@ -1,0 +1,10 @@
+### Authe忽略文件
+- 不要索引D:\daizuogitee\xqwz\frontend\node_modules文件，这是前端node库
+- 使用中文作为augment的日志输出语言
+- 在D:\daizuogitee\jr_muaythai_checkin-main\函数\新函数路径中保存修改后的函数
+- 如果需要测试，可以使用本地mysql数据库localhost:3306,用户名root 密码123456，数据库supabasetest
+- 我需要的逻辑是：高级卡 -> 高级教练: 正常签到，扣课时。
+高级卡 -> JR教练: 额外签到，不扣课时。
+JR卡 -> JR教练: 正常签到，扣课时。
+JR卡 -> 高级教练: 额外签到，不扣课时。
+- 我使用的签到测试数据是在members表的id是91836fb5-66ff-4e3c-8307-62014c637b96，name是test_m，拥有一张高级教练卡，我需要模拟他签到JR教练的过程，期望得到额外签到的效果

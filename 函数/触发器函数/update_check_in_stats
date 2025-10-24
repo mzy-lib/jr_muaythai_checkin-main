@@ -1,0 +1,16 @@
+
+BEGIN
+  -- Update member's last check-in date
+  UPDATE members
+  SET last_check_in_date = NEW.check_in_date
+  WHERE id = NEW.member_id;
+
+  -- If it's an extra check-in, increment the counter
+  IF NEW.is_extra THEN
+    UPDATE members
+    SET extra_check_ins = COALESCE(extra_check_ins, 0) + 1
+    WHERE id = NEW.member_id;
+  END IF;
+
+  RETURN NEW;
+END;

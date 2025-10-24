@@ -18,13 +18,15 @@ interface ValidateCardResult {
 export async function validateMembershipCard(
   cardId: string,
   memberId: string,
-  courseType: 'private' | 'group' | 'kids_group'
+  courseType: 'private' | 'group' | 'kids_group',
+  trainerId?: string | null
 ): Promise<ValidateCardResult> {
   try {
     logger.info('开始验证会员卡', {
       cardId,
       memberId,
-      courseType
+      courseType,
+      trainerId
     });
 
     // 调用数据库函数验证会员卡
@@ -34,7 +36,8 @@ export async function validateMembershipCard(
         p_card_id: cardId,
         p_member_id: memberId,
         p_class_type: courseType,
-        p_check_in_date: new Date().toISOString().split('T')[0]
+        p_check_in_date: new Date().toISOString().split('T')[0],
+        p_trainer_id: trainerId
       }
     );
 

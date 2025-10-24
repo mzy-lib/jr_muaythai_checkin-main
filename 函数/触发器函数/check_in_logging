@@ -1,0 +1,57 @@
+
+DECLARE
+  v_member RECORD;
+  v_card RECORD;
+  v_trainer RECORD;
+BEGIN
+  -- Get member info
+  SELECT name, email INTO v_member
+  FROM members
+  WHERE id = NEW.member_id;
+
+  -- Get card info if exists
+  SELECT id, card_type, card_category, card_subtype
+  INTO v_card
+  FROM membership_cards
+  WHERE id = NEW.card_id;
+
+  -- Get trainer info if exists
+  SELECT name, type INTO v_trainer
+  FROM trainers
+  WHERE id = NEW.trainer_id;
+
+  -- Log check-in details
+  INSERT INTO check_in_logs (
+    check_in_id,
+    details,
+    created_at
+  ) VALUES (
+    NEW.id,
+    jsonb_build_object(
+      'member_name', v_member.name,
+      'member_email', v_member.email,
+      'check_in_date', NEW.check_in_date,
+      'time_slot', NEW.time_slot,
+      'is_extra', NEW.is_extra,
+      'is_private', NEW.is_private,
+      'is_1v2', NEW.is_1v2,
+      'card_id', NEW.card_id,
+      'card_info', CASE WHEN v_card.id IS NOT NULL THEN 
+        jsonb_build_object(
+          'card_type', v_card.card_type,
+          'card_category', v_card.card_category,
+          'card_subtype', v_card.card_subtype
+        )
+      ELSE NULL END,
+      'trainer_info', CASE WHEN v_trainer.name IS NOT NULL THEN
+        jsonb_build_object(
+          'name', v_trainer.name,
+          'type', v_trainer.type
+        )
+      ELSE NULL END
+    ),
+    NOW()
+  );
+
+  RETURN NEW;
+END;

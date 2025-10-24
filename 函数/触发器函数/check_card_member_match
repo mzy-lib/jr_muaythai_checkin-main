@@ -1,0 +1,22 @@
+
+DECLARE
+  v_card_member_id UUID;
+BEGIN
+  -- 如果没有指定会员卡，则跳过验证
+  IF NEW.card_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+  
+  -- 获取会员卡所属的会员ID
+  SELECT member_id INTO v_card_member_id
+  FROM membership_cards
+  WHERE id = NEW.card_id;
+  
+  -- 验证会员卡是否属于该会员
+  IF v_card_member_id != NEW.member_id THEN
+    RAISE EXCEPTION '会员卡不属于该会员
+Membership card does not belong to this member';
+  END IF;
+  
+  RETURN NEW;
+END;

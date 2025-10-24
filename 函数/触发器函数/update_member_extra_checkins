@@ -1,0 +1,48 @@
+
+DECLARE
+    v_old_is_extra BOOLEAN;
+BEGIN
+    -- 获取旧记录的is_extra值（如果是更新操作）
+    IF TG_OP = 'UPDATE' THEN
+        v_old_is_extra := OLD.is_extra;
+    ELSE
+        v_old_is_extra := FALSE;
+    END IF;
+    
+    -- 记录调试信息
+    INSERT INTO debug_logs (function_name, member_id, message, details)
+    VALUES (
+        'update_member_extra_checkins',
+        NEW.member_id,
+        '更新会员额外签到计数',
+        jsonb_build_object(
+            'operation', TG_OP,
+            'old_is_extra', v_old_is_extra,
+            'new_is_extra', NEW.is_extra
+        )
+    );
+    
+    -- 根据操作类型和is_extra的变化更新会员的额外签到计数
+    IF TG_OP = 'INSERT' AND NEW.is_extra THEN
+        -- 新增额外签到
+        UPDATE members
+        SET extra_check_ins = COALESCE(extra_check_ins, 0) + 1
+        WHERE id = NEW.member_id;
+        
+    ELSIF TG_OP = 'UPDATE' THEN
+        IF NOT v_old_is_extra AND NEW.is_extra THEN
+            -- 从普通签到变为额外签到
+            UPDATE members
+            SET extra_check_ins = COALESCE(extra_check_ins, 0) + 1
+            WHERE id = NEW.member_id;
+            
+        ELSIF v_old_is_extra AND NOT NEW.is_extra THEN
+            -- 从额外签到变为普通签到
+            UPDATE members
+            SET extra_check_ins = GREATEST(COALESCE(extra_check_ins, 0) - 1, 0)
+            WHERE id = NEW.member_id;
+        END IF;
+    END IF;
+    
+    RETURN NEW;
+END;

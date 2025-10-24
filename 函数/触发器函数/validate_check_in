@@ -1,0 +1,39 @@
+
+DECLARE
+  v_member RECORD;
+  v_duplicate_exists BOOLEAN;
+BEGIN
+  -- 获取会员信息
+  SELECT * INTO v_member
+  FROM members
+  WHERE id = NEW.member_id;
+  
+  IF NOT FOUND THEN
+    RAISE EXCEPTION '未找到会员ID为 % 的记录', NEW.member_id;
+  END IF;
+  
+  -- 检查是否有重复签到，但只记录不阻止
+  -- 直接调用并接收boolean结果
+  v_duplicate_exists := check_duplicate_check_in(
+    NEW.member_id, 
+    NEW.check_in_date, 
+    NEW.class_type::TEXT,
+    NEW.time_slot
+  );
+  
+  -- 记录重复签到信息，但允许继续
+  IF v_duplicate_exists THEN
+    PERFORM log_debug(
+      'validate_check_in',
+      '检测到重复签到，但允许继续',
+      jsonb_build_object(
+        'member_id', NEW.member_id,
+        'class_type', NEW.class_type,
+        'check_in_date', NEW.check_in_date
+      )
+    );
+  END IF;
+  
+  -- 根据业务规则，总是允许签到继续
+  RETURN NEW;
+END;

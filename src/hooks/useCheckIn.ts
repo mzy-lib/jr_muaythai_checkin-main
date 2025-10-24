@@ -25,7 +25,7 @@ export function useCheckIn() {
   // 根据时间段确定课程类型
   const getClassTypeFromTimeSlot = (timeSlot: string): 'morning' | 'evening' => {
     console.log('转换时间段:', timeSlot);
-    
+
     // 精确匹配常见时间格式
     if (timeSlot === '9:00-10:30' || timeSlot === '09:00-10:30') {
       return 'morning';
@@ -35,28 +35,28 @@ export function useCheckIn() {
       // 添加对儿童团课时间段的支持
       return 'morning';
     }
-    
+
     // 模糊匹配以增强鲁棒性
-    if (timeSlot.includes('9:') || timeSlot.includes('09:') || 
-        timeSlot.includes('10:') || timeSlot.includes('11:') ||
-        timeSlot.toLowerCase().includes('morning') || 
-        timeSlot.includes('上午')) {
+    if (timeSlot.includes('9:') || timeSlot.includes('09:') ||
+      timeSlot.includes('10:') || timeSlot.includes('11:') ||
+      timeSlot.toLowerCase().includes('morning') ||
+      timeSlot.includes('上午')) {
       return 'morning';
     }
-    
+
     // 默认返回evening
     return 'evening';
   };
 
   const submitCheckIn = async (formData: CheckInFormData): Promise<CheckInResult> => {
     let result;
-    
+
     try {
       setLoading(true);
       setError(null);
 
-      logger.info('开始签到流程', { 
-        name: formData.name, 
+      logger.info('开始签到流程', {
+        name: formData.name,
         email: formData.email,
         timeSlot: formData.timeSlot,
         courseType: formData.courseType
@@ -102,54 +102,54 @@ export function useCheckIn() {
           courseType: formData.courseType,
           timeSlot: formData.timeSlot
         });
-        
+
         // 验证时间段
         if (!formData.timeSlot) {
           throw new Error('签到时需要选择时间段');
         }
-        
+
         // 验证教练ID格式(如果是私教课)
-        if (formData.courseType === 'private' && formData.trainerId && 
-            !formData.trainerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        if (formData.courseType === 'private' && formData.trainerId &&
+          !formData.trainerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
           logger.error('无效的trainer_id格式', { trainer_id: formData.trainerId });
           throw new Error('无效的教练ID格式');
         }
-        
+
         // 构造register_new_member参数
         const registerParams = {
           p_name: formData.name,
           p_email: formData.email || '',  // 确保email不为null
           p_class_type: formData.courseType === 'kids_group' ? 'kids_group' : // 儿童团课
-                       formData.courseType === 'private' ? 'private' :      // 私教课
-                       getClassTypeFromTimeSlot(formData.timeSlot),         // 普通团课
+            formData.courseType === 'private' ? 'private' :      // 私教课
+              getClassTypeFromTimeSlot(formData.timeSlot),         // 普通团课
           p_is_private: formData.courseType === 'private',
           p_trainer_id: formData.courseType === 'private' ? formData.trainerId : null,
           p_time_slot: formData.timeSlot,
           p_is_1v2: formData.courseType === 'private' ? !!formData.is1v2 : false
         };
-        
+
         logger.info('调用register_new_member注册新会员', registerParams);
-        
+
         const { data: registerResult, error: registerError } = await supabase.rpc(
           'register_new_member',
           registerParams
         );
-        
+
         if (registerError) {
-          logger.error('新会员注册失败', { 
+          logger.error('新会员注册失败', {
             error: registerError,
             params: registerParams
           });
           throw new Error(registerError.message || '新会员注册失败');
         }
-        
+
         if (!registerResult || !registerResult.success) {
           logger.error('新会员注册返回数据无效', { registerResult });
           throw new Error('新会员注册失败，返回数据无效');
         }
-        
+
         logger.info('新会员注册成功', registerResult);
-        
+
         return {
           success: true,
           isNewMember: true,
@@ -173,8 +173,8 @@ export function useCheckIn() {
         const validCard = cards?.find(card => {
           if (formData.courseType === 'private') {
             // 兼容私教课不同类型名称: "private"或"私教课"
-            return (card.card_type === 'private' || card.card_type === '私教课') && 
-                   card.remaining_private_sessions > 0;
+            return (card.card_type === 'private' || card.card_type === '私教课') &&
+              card.remaining_private_sessions > 0;
           } else if (formData.courseType === 'kids_group') {
             return card.card_type === '儿童团课' && card.remaining_kids_sessions > 0;
           } else {
@@ -190,7 +190,8 @@ export function useCheckIn() {
           const cardValidation = await validateMembershipCard(
             validCard.id,
             result.member_id,
-            formData.courseType
+            formData.courseType,
+            formData.trainerId
           );
           if (cardValidation.isValid) {
             validCardId = cardValidation.cardId;
@@ -205,8 +206,8 @@ export function useCheckIn() {
       }
 
       // 验证trainer_id格式(如果存在)
-      if (formData.courseType === 'private' && formData.trainerId && 
-          !formData.trainerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      if (formData.courseType === 'private' && formData.trainerId &&
+        !formData.trainerId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
         logger.error('无效的trainer_id格式', { trainer_id: formData.trainerId });
         throw new Error('无效的教练ID格式');
       }
@@ -269,13 +270,13 @@ export function useCheckIn() {
           'handle_check_in',
           rpcParams
         );
-        
+
         logger.info('handle_check_in原始响应', response);
-        
+
         const { data: checkInResult, error: checkInError } = response;
-        
+
         if (checkInError) {
-          logger.error('签到错误', { 
+          logger.error('签到错误', {
             error: checkInError,
             code: checkInError.code,
             hint: checkInError.hint,
@@ -283,7 +284,7 @@ export function useCheckIn() {
             message: checkInError.message,
             params: rpcParams
           });
-          
+
           // 当检测到重复签到时
           if (checkInError.message?.includes('今天已经在这个时段签到过了')) {
             return {
@@ -349,7 +350,7 @@ export function useCheckIn() {
           }
 
           // 正常处理成功结果
-          logger.info('签到成功', { 
+          logger.info('签到成功', {
             checkInResult,
             isExtra: checkInResult.isExtra,
             isNewMember: checkInResult.isNewMember,
@@ -363,12 +364,12 @@ export function useCheckIn() {
             isNewMember: checkInResult.isNewMember,
             isDuplicate: false,
             courseType: formData.courseType,
-            message: checkInResult.message || (checkInResult.isExtra 
-              ? (formData.courseType === 'private' 
-                 ? messages.checkIn.extraCheckInPrivate 
-                 : formData.courseType === 'kids_group'
-                   ? '儿童团课额外签到成功！\nKids group class extra check-in successful!'
-                   : messages.checkIn.extraCheckInGroup)
+            message: checkInResult.message || (checkInResult.isExtra
+              ? (formData.courseType === 'private'
+                ? messages.checkIn.extraCheckInPrivate
+                : formData.courseType === 'kids_group'
+                  ? '儿童团课额外签到成功！\nKids group class extra check-in successful!'
+                  : messages.checkIn.extraCheckInGroup)
               : formData.courseType === 'private'
                 ? '私教课签到成功！课时已扣除。\nPrivate class check-in successful! Session deducted.'
                 : formData.courseType === 'kids_group'
@@ -380,10 +381,10 @@ export function useCheckIn() {
           return finalResult;
         } catch (unexpectedError) {
           // 捕获处理签到结果时的任何意外错误
-          logger.error('处理签到结果时发生意外错误', { 
-            unexpectedError, 
+          logger.error('处理签到结果时发生意外错误', {
+            unexpectedError,
             checkInResult,
-            params: rpcParams 
+            params: rpcParams
           });
           return {
             success: false,
@@ -411,10 +412,10 @@ export function useCheckIn() {
         stack: err instanceof Error ? err.stack : undefined,
         fullError: JSON.stringify(err, Object.getOwnPropertyNames(err))
       };
-      
+
       console.error('签到失败', errorDetails);
       logger.error('签到失败', errorDetails);
-      
+
       let errorMessage: string;
       if (err instanceof Error) {
         errorMessage = err.message;
@@ -423,9 +424,9 @@ export function useCheckIn() {
       } else {
         errorMessage = messages.checkIn.error;
       }
-      
+
       setError(errorMessage);
-      
+
       // 返回标准格式的CheckInResult对象
       return {
         success: false,
@@ -451,7 +452,7 @@ export function useCheckIn() {
           timeSlot: data.courseType === 'kids_group' ? '10:30-12:00' : data.timeSlot
         })
       });
-      
+
       return await response.json();
     } catch (error) {
       console.error('签到失败:', error);

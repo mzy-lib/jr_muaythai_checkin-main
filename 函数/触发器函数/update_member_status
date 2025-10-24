@@ -1,0 +1,21 @@
+
+BEGIN
+  -- 如果是新会员，更新为老会员
+  IF (SELECT is_new_member FROM members WHERE id = NEW.member_id) THEN
+    UPDATE members
+    SET is_new_member = false
+    WHERE id = NEW.member_id;
+    
+    -- 记录日志
+    INSERT INTO debug_logs (function_name, message, member_id, details)
+    VALUES ('update_member_status', '会员状态已更新', NEW.member_id,
+      jsonb_build_object(
+        'old_status', 'new',
+        'new_status', 'old',
+        'check_in_id', NEW.id
+      )
+    );
+  END IF;
+  
+  RETURN NEW;
+END;

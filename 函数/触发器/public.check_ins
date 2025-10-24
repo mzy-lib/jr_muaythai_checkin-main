@@ -1,0 +1,70 @@
+create table public.check_ins (
+  id uuid not null default gen_random_uuid (),
+  member_id uuid null,
+  check_in_date date not null default CURRENT_DATE,
+  created_at timestamp with time zone null default now(),
+  is_extra boolean null default false,
+  trainer_id uuid null,
+  is_1v2 boolean null default false,
+  class_time time without time zone not null default '09:00:00'::time without time zone,
+  card_id uuid null,
+  is_private boolean not null default false,
+  time_slot text not null,
+  class_type public.class_type null,
+  constraint check_ins_pkey primary key (id),
+  constraint check_ins_card_id_fkey foreign KEY (card_id) references membership_cards (id),
+  constraint check_ins_trainer_id_fkey foreign KEY (trainer_id) references trainers (id)
+) TABLESPACE pg_default;
+
+create index IF not exists check_ins_check_in_date_idx on public.check_ins using btree (check_in_date) TABLESPACE pg_default;
+
+create index IF not exists check_ins_member_id_idx on public.check_ins using btree (member_id) TABLESPACE pg_default;
+
+create index IF not exists idx_check_ins_member_date_class on public.check_ins using btree (member_id, check_in_date, class_type) TABLESPACE pg_default;
+
+create index IF not exists idx_check_ins_member_id on public.check_ins using btree (member_id) TABLESPACE pg_default;
+
+create index IF not exists idx_check_ins_check_in_date on public.check_ins using btree (check_in_date) TABLESPACE pg_default;
+
+create index IF not exists idx_check_ins_created_at on public.check_ins using btree (created_at) TABLESPACE pg_default;
+
+create index IF not exists idx_check_ins_date on public.check_ins using btree (check_in_date) TABLESPACE pg_default;
+
+create index IF not exists idx_check_ins_types on public.check_ins using btree (is_extra, is_private) TABLESPACE pg_default;
+
+create index IF not exists idx_check_ins_trainer_id on public.check_ins using btree (trainer_id) TABLESPACE pg_default;
+
+create index IF not exists idx_check_ins_card_id on public.check_ins using btree (card_id) TABLESPACE pg_default;
+
+create trigger check_card_member_match_trigger BEFORE INSERT
+or
+update on check_ins for EACH row
+execute FUNCTION check_card_member_match ();
+
+create trigger check_in_logging_trigger
+after INSERT on check_ins for EACH row
+execute FUNCTION check_in_logging ();
+
+create trigger find_valid_card_trigger BEFORE INSERT on check_ins for EACH row
+execute FUNCTION find_valid_card_for_checkin ();
+
+create trigger process_check_in_trigger
+after INSERT on check_ins for EACH row
+execute FUNCTION process_check_in ();
+
+create trigger update_check_in_stats_trigger
+after INSERT on check_ins for EACH row
+execute FUNCTION update_check_in_stats ();
+
+create trigger update_member_extra_checkins_trigger
+after INSERT
+or
+update OF is_extra on check_ins for EACH row
+execute FUNCTION update_member_extra_checkins ();
+
+create trigger update_member_status_trigger
+after INSERT on check_ins for EACH row
+execute FUNCTION update_member_status ();
+
+create trigger validate_check_in_trigger BEFORE INSERT on check_ins for EACH row
+execute FUNCTION validate_check_in ();

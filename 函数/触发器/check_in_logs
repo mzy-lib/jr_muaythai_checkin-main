@@ -1,0 +1,12 @@
+create table public.check_in_logs (
+  id uuid not null default gen_random_uuid (),
+  check_in_id uuid not null,
+  details jsonb not null,
+  created_at timestamp with time zone not null default now(),
+  constraint check_in_logs_pkey primary key (id),
+  constraint check_in_logs_check_in_id_fkey foreign KEY (check_in_id) references check_ins (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists check_in_logs_check_in_id_idx on public.check_in_logs using btree (check_in_id) TABLESPACE pg_default;
+
+create index IF not exists check_in_logs_created_at_idx on public.check_in_logs using btree (created_at) TABLESPACE pg_default;
