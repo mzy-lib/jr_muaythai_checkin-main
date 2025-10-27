@@ -41,8 +41,9 @@ BEGIN
     RETURN jsonb_build_object('is_valid', false, 'reason', '卡类型不匹配课程类型');
   END IF;
 
-  -- Perform strict trainer type matching for all classes
-  IF p_trainer_id IS NOT NULL THEN
+  -- Perform strict trainer type matching ONLY for private classes
+  -- 只对私教课进行教练等级匹配验证，团课和儿童团课不需要
+  IF v_is_private AND p_trainer_id IS NOT NULL AND trim(p_trainer_id::text) != '' THEN
     SELECT lower(trim(type)) INTO v_trainer_type FROM trainers WHERE id = p_trainer_id;
 
     -- CRITICAL FIX: Ensure trainer exists and type is known

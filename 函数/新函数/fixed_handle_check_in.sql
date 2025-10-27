@@ -32,9 +32,9 @@ BEGIN
     INSERT INTO members(id, name, email, is_new_member) VALUES (p_member_id, p_name, p_email, true);
   END IF;
   
-  -- 3. Core validation logic: Find the card first (for all class types)
+  -- 3. Core validation logic: 对所有课程类型都使用 find_matching_card 函数查找匹配的卡
   v_matched_card_id := find_matching_card(p_member_id, p_class_type, p_trainer_id);
-
+  
   -- 如果系统找不到匹配的卡，则必须将所有 card_id 设为 NULL，
   -- 以确保这笔记录被正确地、无歧义地当作"额外签到"处理
   IF v_matched_card_id IS NULL THEN

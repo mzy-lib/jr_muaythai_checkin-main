@@ -10,6 +10,7 @@ const getCardTypeDisplay = (type: string | null | undefined): string => {
   if (type === 'private') return '私教课 Private Class';
   if (type === '团课') return '团课 Group Class';
   if (type === '私教课') return '私教课 Private Class';
+  if (type === '儿童团课') return '儿童团课 Kids Group Class';
   return type; // 返回原值
 };
 
@@ -78,11 +79,19 @@ export default function MemberProfile({ member }: Props) {
     const fullCardName = `${formattedCardName}${trainerInfo}`;
 
     // 根据卡类型获取剩余课时
-    const isPrivateCard = card.card_type === '私教课' || 
+    const isPrivateCard = card.card_type === '私教课' ||
                          (card.card_type?.toLowerCase() === 'private');
-    const remaining = isPrivateCard
-      ? card.remaining_private_sessions 
-      : card.remaining_group_sessions;
+    const isKidsCard = card.card_type === '儿童团课' ||
+                      (card.card_type?.toLowerCase().includes('kids'));
+
+    let remaining: number | null = null;
+    if (isPrivateCard) {
+      remaining = card.remaining_private_sessions;
+    } else if (isKidsCard) {
+      remaining = card.remaining_kids_sessions;
+    } else {
+      remaining = card.remaining_group_sessions;
+    }
 
     return (
       <div key={card.id} className="bg-white p-4 rounded-lg shadow-sm">

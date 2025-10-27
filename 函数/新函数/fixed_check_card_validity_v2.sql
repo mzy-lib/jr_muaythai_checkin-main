@@ -37,12 +37,14 @@ BEGIN
 
   -- Check if card type matches class type
   IF (v_card.card_type = '私教课' AND NOT v_is_private) OR
-     (v_card.card_type = '团课' AND v_is_private) THEN
+     (v_card.card_type = '团课' AND v_is_private) OR
+     (v_card.card_type = '儿童团课' AND v_is_private) THEN
     RETURN jsonb_build_object('is_valid', false, 'reason', '卡类型不匹配课程类型');
   END IF;
 
-  -- Perform strict trainer type matching for all classes
-  IF p_trainer_id IS NOT NULL THEN
+  -- Perform strict trainer type matching ONLY for private classes
+  -- 只对私教课进行教练等级匹配验证，团课和儿童团课不需要
+  IF v_is_private AND p_trainer_id IS NOT NULL AND trim(p_trainer_id::text) != '' THEN
     SELECT lower(trim(type)) INTO v_trainer_type FROM trainers WHERE id = p_trainer_id;
 
     -- CRITICAL FIX: Ensure trainer exists and type is known
@@ -82,8 +84,8 @@ BEGIN
       END IF;
     END IF;
   ELSIF v_card.card_type = '儿童团课' THEN
-    -- 儿童团课检查团课课时
-    IF v_card.remaining_group_sessions IS NULL OR v_card.remaining_group_sessions <= 0 THEN
+    -- 儿童团课检查儿童团课课时
+    IF v_card.remaining_kids_sessions IS NULL OR v_card.remaining_kids_sessions <= 0 THEN
       RETURN jsonb_build_object('is_valid', false, 'reason', '课时不足');
     END IF;
   END IF;

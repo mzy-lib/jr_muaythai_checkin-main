@@ -17,6 +17,7 @@ interface MemberCard {
   trainer_type?: string;
   remaining_group_sessions?: number;
   remaining_private_sessions?: number;
+  remaining_kids_sessions?: number;
   valid_until: string;
   created_at: string;
 }
@@ -96,10 +97,21 @@ const MemberCard: React.FC = () => {
   };
 
   const getRemainingClasses = (card: MemberCard) => {
-    if (card.card_type === '团课' || card.card_type?.toLowerCase() === 'class') {
+    // 判断是否为私教课
+    const isPrivateCard = card.card_type === '私教课' ||
+                         (card.card_type?.toLowerCase() === 'private');
+
+    // 判断是否为儿童团课
+    const isKidsCard = card.card_type === '儿童团课' ||
+                      (card.card_type?.toLowerCase().includes('kids'));
+
+    if (isPrivateCard) {
+      return card.remaining_private_sessions;
+    } else if (isKidsCard) {
+      return card.remaining_kids_sessions;
+    } else {
       return card.remaining_group_sessions;
     }
-    return card.remaining_private_sessions;
   };
 
   // 计算会员卡有效期状态
@@ -183,20 +195,31 @@ const MemberCard: React.FC = () => {
                 {card.remaining_group_sessions !== undefined && (
                   <div className="mt-2">
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`${card.card_type === '团课' ? 'bg-blue-600' : 'bg-blue-600'} h-2 rounded-full`} 
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
                         style={{ width: `${Math.min(100, (card.remaining_group_sessions / 10) * 100)}%` }}
                       ></div>
                     </div>
                   </div>
                 )}
-                
+
                 {card.remaining_private_sessions !== undefined && (
                   <div className="mt-2">
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
                         style={{ width: `${Math.min(100, (card.remaining_private_sessions / 10) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                {card.remaining_kids_sessions !== undefined && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
+                        style={{ width: `${Math.min(100, (card.remaining_kids_sessions / 10) * 100)}%` }}
                       ></div>
                     </div>
                   </div>
